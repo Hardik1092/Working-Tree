@@ -3,14 +3,18 @@ const logger = require('./logger');
 
 const connectDB = async () => {
   const maxRetries = 5;
-  let retryCount = 0;
+  const uri = process.env.MONGODB_URI;
 
-  const connectWithRetry = async () => {
+  if (!uri) {
+    logger.error('MONGODB_URI is not set in environment');
+    process.exit(1);
+  }
+
+  const connectWithRetry = async (retryCount = 0) => {
     try {
-      await mongoose.connect(process.env.MONGODB_URI);
+      await mongoose.connect(uri);
       logger.info('MongoDB connected successfully');
 
-      // Drop stale indexes from old schema (phone_1 when we use phoneNumber)
       try {
         await mongoose.connection.collection('users').dropIndex('phone_1');
         logger.info('Dropped stale phone_1 index from users collection');
@@ -18,17 +22,18 @@ const connectDB = async () => {
         // Ignore - index may not exist or collection empty
       }
     } catch (error) {
-      retryCount += 1;
-      logger.error(`MongoDB connection failed (attempt ${retryCount}/${maxRetries}):`, error.message);
+      const attempt = retryCount + 1;
+      logger.error(`MongoDB connection failed (attempt ${attempt}/${maxRetries}):`, error.message);
 
-      if (retryCount < maxRetries) {
-        const delay = Math.pow(2, retryCount) * 1000;
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000;
         logger.info(`Retrying in ${delay}ms...`);
-        setTimeout(connectWithRetry, delay);
-      } else {
-        logger.error('MongoDB connection failed after max retries');
-        process.exit(1);
+        await new Promise((r) => setTimeout(r, delay));
+        return connectWithRetry(attempt);
       }
+
+      logger.error('MongoDB connection failed after max retries');
+      process.exit(1);
     }
   };
 

@@ -70,7 +70,10 @@ const startServer = async () => {
     await seedProfileAdmin();
 
     if (process.env.REDIS_URL) {
-      await connectRedis();
+      const client = await connectRedis();
+      if (!client) {
+        logger.warn('Redis connection failed; running without Redis (cache/OTP blacklist will use in-memory fallback where supported).');
+      }
     }
 
     const server = http.createServer(app);

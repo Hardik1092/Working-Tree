@@ -1,0 +1,171 @@
+import React from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet } from 'react-native';
+import { registerSchema, type RegisterInput } from '@krishiconnect/shared';
+import { useAuthStore } from '@/store/authStore';
+import { authService } from '@/services/authService';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { colors } from '@/theme/colors';
+import { spacing } from '@/theme/spacing';
+
+export function RegisterScreen() {
+  const router = useRouter();
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [step, setStep] = React.useState<'form' | 'otp'>('form');
+  const [otpId, setOtpId] = React.useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = React.useState<string | null>(null);
+
+  const form = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      password: '',
+      confirmPassword: '',
+      phoneNumber: '',
+      email: '',
+    },
+  });
+
+  const onRegisterSubmit = async (data: RegisterInput) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await authService.register({
+        name: data.name,
+        password: data.password,
+        phoneNumber: data.phoneNumber || undefined,
+        email: data.email || undefined,
+        location:
+          data.state || data.district
+            ? { state: data.state, district: data.district }
+            : undefined,
+      });
+      const payload = res.data;
+      if (payload?.otpId) {
+        setOtpId(payload.otpId);
+        setStep('otp');
+      } else if (payload?.phoneNumber) {
+        setPhoneNumber(payload.phoneNumber);
+        setStep('otp');
+      } else {
+        setError(res.message ?? 'Registration failed');
+      }
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null;
+      setError(msg ?? (e instanceof Error ? e.message : 'Registration failed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onOtpSubmit = async (otp: string) => {
+    setError(null);
+    setLoading(true);
+    try {
+      if (otpId) {
+        const res = await authService.verifyRegistrationOTP({ otpId, otp });
+        if (res.data && 'tokens' in res.data) {
+          const d = res.data as { user: unknown; tokens: { accessToken: string; refreshToken: string } };
+          await setAuth(d.user as Parameters<typeof setAuth>[0], d.tokens.accessToken, d.tokens.refreshToken);
+          router.replace('/(tabs)/home');
+        } else {
+          setError(res.message ?? 'Verification failed');
+        }
+      } else if (phoneNumber) {
+        const res = await authService.verifyOTP({ phoneNumber, otp });
+        if (res.data && 'tokens' in res.data) {
+          const d = res.data as { user: unknown; tokens: { accessToken: string; refreshToken: string } };
+          await setAuth(d.user as Parameters<typeof setAuth>[0], d.tokens.accessToken, d.tokens.refreshToken);
+          router.replace('/(tabs)/home');
+        } else {
+          setError(res.message ?? 'Verification failed');
+        }
+      }
+    } catch (e: unknown) {
+      const msg =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null;
+      setError(msg ?? (e instanceof Error ? e.message : 'Verification failed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const theme = colors.light;
+
+  if (step === 'otp') {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <Text style={[styles.title, { color: theme.foreground }]}>Enter OTP</Text>
+        {error ? <Text style={[styles.error, { color: theme.destructive }]}>{error}</Text> : null}
+        <Input
+          placeholder="6-digit code"
+          keyboardType="number-pad"
+          maxLength={6}
+          onChangeText={(text) => text.length === 6 && onOtpSubmit(text)}
+        />
+        <Button title="Back" variant="outline" onPress={() => setStep('form')} style={styles.btn} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Text style={[styles.title, { color: theme.foreground }]}>Create account</Text>
+      {error ? <Text style={[styles.error, { color: theme.destructive }]}>{error}</Text> : null}
+      <Controller
+        control={form.control}
+        name="name"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input label="Name" placeholder="Your name" value={value} onChangeText={onChange} onBlur={onBlur} error={form.formState.errors.name?.message} />
+        )}
+      />
+      <Controller
+        control={form.control}
+        name="phoneNumber"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input label="Phone" placeholder="9876543210" value={value ?? ''} onChangeText={onChange} onBlur={onBlur} error={form.formState.errors.phoneNumber?.message} />
+        )}
+      />
+      <Controller
+        control={form.control}
+        name="email"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input label="Email (optional)" placeholder="you@example.com" value={value ?? ''} onChangeText={onChange} onBlur={onBlur} error={form.formState.errors.email?.message} />
+        )}
+      />
+      <Controller
+        control={form.control}
+        name="password"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input label="Password" placeholder="Min 6 characters" value={value} onChangeText={onChange} onBlur={onBlur} secureTextEntry error={form.formState.errors.password?.message} />
+        )}
+      />
+      <Controller
+        control={form.control}
+        name="confirmPassword"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <Input label="Confirm password" placeholder="••••••••" value={value} onChangeText={onChange} onBlur={onBlur} secureTextEntry error={form.formState.errors.confirmPassword?.message} />
+        )}
+      />
+      <Button title="Register" onPress={form.handleSubmit(onRegisterSubmit)} loading={loading} style={styles.btn} />
+      <Button title="Already have an account? Log in" variant="ghost" onPress={() => router.replace('/(auth)/login')} style={styles.btn} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: spacing.lg, justifyContent: 'center' },
+  title: { fontSize: 24, fontWeight: '700', marginBottom: spacing.lg },
+  error: { marginBottom: spacing.md },
+  btn: { marginTop: spacing.sm },
+});

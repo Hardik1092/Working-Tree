@@ -31,16 +31,22 @@ const newsRoutes = require('./modules/news/news.routes');
 
 const app = express();
 
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false,
-}));
+const corsOrigin = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map((o) => o.trim()).filter(Boolean)
+  : (process.env.NODE_ENV === 'development'
+    ? ['http://localhost:5173', 'http://localhost:8081']
+    : '*');
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*',
+  origin: corsOrigin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
 }));
 
 app.use(compression());
