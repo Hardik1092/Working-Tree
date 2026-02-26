@@ -3,15 +3,19 @@ import { DEFAULT_FEED_PAGE_SIZE } from '@krishiconnect/shared';
 import type { FeedPost } from '@krishiconnect/shared';
 import { postService } from '@/services/postService';
 
-const FEED_QUERY_KEY = ['feed', 'recent'];
+export type FeedMode = 'recent' | 'trending';
 
-export function useFeed() {
+export function useFeed(mode: FeedMode) {
   const queryClient = useQueryClient();
+  const queryKey = ['feed', mode] as const;
 
   const query = useInfiniteQuery({
-    queryKey: FEED_QUERY_KEY,
+    queryKey,
     queryFn: async ({ pageParam = 1 }) => {
-      const { posts } = await postService.getRecent(pageParam, DEFAULT_FEED_PAGE_SIZE);
+      const { posts } =
+        mode === 'trending'
+          ? await postService.getTrending(pageParam, DEFAULT_FEED_PAGE_SIZE)
+          : await postService.getRecent(pageParam, DEFAULT_FEED_PAGE_SIZE);
       return posts;
     },
     getNextPageParam: (lastPage, allPages) => {
@@ -24,7 +28,8 @@ export function useFeed() {
   const likeMutation = useMutation({
     mutationFn: (postId: string) => postService.toggleLike(postId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: FEED_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['feed', 'recent'] });
+      queryClient.invalidateQueries({ queryKey: ['feed', 'trending'] });
     },
   });
 

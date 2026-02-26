@@ -52,6 +52,19 @@ export const postService = {
     };
   },
 
+  async getTrending(page: number, limit: number = DEFAULT_FEED_PAGE_SIZE): Promise<{ posts: FeedPost[]; meta?: ApiEnvelope<unknown>['meta'] }> {
+    const { data } = await request<ApiEnvelope<(Post & { isLiked?: boolean; isSaved?: boolean })[]>>(
+      'GET',
+      `${POSTS.TRENDING}?page=${page}&limit=${limit}`
+    );
+    const raw = data.data ?? data;
+    const postsArray = Array.isArray(raw) ? raw : (raw as { posts?: (Post & { isLiked?: boolean; isSaved?: boolean })[] })?.posts ?? [];
+    return {
+      posts: postsArray.map(toFeedPost),
+      meta: data.meta,
+    };
+  },
+
   async getPostById(id: string): Promise<FeedPost | null> {
     const { data } = await request<ApiEnvelope<Post & { isLiked?: boolean; isSaved?: boolean }>>('GET', POSTS.BY_ID(id));
     const raw = data.data ?? data;

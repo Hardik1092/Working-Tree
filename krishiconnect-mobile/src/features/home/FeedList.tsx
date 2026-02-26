@@ -62,7 +62,7 @@ export function FeedList() {
 
 const styles = StyleSheet.create({
   list: {
-    paddingVertical: spacing.md,
+    paddingTop: spacing.sm,
     paddingBottom: 88,
   },
 });

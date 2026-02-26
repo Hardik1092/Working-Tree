@@ -1,172 +1,47 @@
-// import React from 'react';
-// import { View, Text, TouchableOpacity, StyleSheet, Platform, useWindowDimensions } from 'react-native';
-// import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// import { Ionicons } from '@expo/vector-icons';
-// import { colors } from '@/theme/colors';
-
-// const VISIBLE_TABS = ['home', 'create', 'search', 'profile'];
-// const TAB_COUNT = 4;
-// const TAB_BAR_RADIUS = 16;
-// const TAB_BAR_PADDING_TOP = 8;
-
-// const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-//   home: 'home',
-//   create: 'add-circle-outline',
-//   search: 'search',
-//   profile: 'person-outline',
-// };
-
-// const TAB_LABELS: Record<string, string> = {
-//   home: 'Home',
-//   create: 'New',
-//   search: 'Search',
-//   profile: 'Profile',
-// };
-
-// const BOTTOM_INSET_FALLBACK = 32;
-
-// export function CustomTabBar({ state, descriptors, navigation }: any) {
-//   const insets = useSafeAreaInsets();
-//   const { width: windowWidth } = useWindowDimensions();
-//   const theme = colors.light;
-//   const paddingBottom = Math.max(BOTTOM_INSET_FALLBACK, insets.bottom);
-//   const tabItemWidth = windowWidth / TAB_COUNT;
-
-//   const visibleRoutes = state.routes.filter((r: { name: string }) => VISIBLE_TABS.includes(r.name));
-
-//   return (
-//     <View
-//       style={[
-//         styles.container,
-//         {
-//           backgroundColor: theme.card,
-//           paddingTop: TAB_BAR_PADDING_TOP,
-//           paddingBottom,
-//           ...Platform.select({
-//             ios: {
-//               shadowColor: '#000',
-//               shadowOffset: { width: 0, height: -2 },
-//               shadowOpacity: 0.06,
-//               shadowRadius: 8,
-//             },
-//             android: { elevation: 8 },
-//           }),
-//         },
-//       ]}
-//     >
-//       <View style={styles.row}>
-//         {visibleRoutes.map((route: { key: string; name: string }, index: number) => {
-//           const currentRoute = state.routes[state.index];
-//           const isFocused = currentRoute && currentRoute.key === route.key;
-//           const color = isFocused ? theme.primary : theme.muted;
-
-//           const onPress = () => {
-//             const event = navigation.emit({
-//               type: 'tabPress',
-//               target: route.key,
-//               canPreventDefault: true,
-//             });
-//             if (!isFocused && !event.defaultPrevented) {
-//               navigation.navigate(route.name);
-//             }
-//           };
-
-//           const iconName = TAB_ICONS[route.name] ?? 'ellipse-outline';
-//           const label = TAB_LABELS[route.name] ?? route.name;
-
-//             return (
-//               <TouchableOpacity
-//                 key={route.key}
-//                 onPress={onPress}
-//                 style={[styles.tabItem, { width: tabItemWidth }]}
-//                 activeOpacity={0.7}
-//                 accessibilityRole="button"
-//                 accessibilityState={isFocused ? { selected: true } : {}}
-//                 accessibilityLabel={label}
-//               >
-//               <Ionicons name={iconName} size={24} color={color} style={styles.icon} />
-//               <Text style={[styles.label, { color }]} numberOfLines={1}>
-//                 {label}
-//               </Text>
-//             </TouchableOpacity>
-//           );
-//         })}
-//       </View>
-//     </View>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     width: '100%',
-//     borderTopLeftRadius: TAB_BAR_RADIUS,
-//     borderTopRightRadius: TAB_BAR_RADIUS,
-//     overflow: 'hidden',
-//   },
-//   row: {
-//     flexDirection: 'row',
-//     alignItems: 'center',
-//     width: '100%',
-//   },
-//   tabItem: {
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     paddingVertical: 8,
-//   },
-//   icon: { marginBottom: 2 },
-//   label: { fontSize: 11 },
-// });
-
-
-
-
-
-
-
-
-
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Platform, 
-  useWindowDimensions 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
+import { spacing } from '@/theme/spacing';
 
 const VISIBLE_TABS = ['home', 'create', 'search', 'profile'];
-const TAB_COUNT = 4;
 const TAB_BAR_RADIUS = 16;
 const TAB_BAR_PADDING_TOP = 8;
+const TAB_BAR_PADDING_BOTTOM_MIN = 10;
+const TAB_BAR_HEIGHT_BASE = 68;
+const ICON_SIZE = 26;
+const ICON_SIZE_CREATE = 28;
+const LABEL_SIZE = 11;
+const ACTIVE_INDICATOR_HEIGHT = 3;
+const CREATE_FAB_SIZE = 52;
 
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   home: 'home',
-  create: 'add-circle-outline',
-  search: 'search',
+  create: 'add',
+  search: 'sparkles-outline',
   profile: 'person-outline',
 };
 
 const TAB_LABELS: Record<string, string> = {
   home: 'Home',
-  create: 'New',
-  search: 'Search',
+  create: 'Create',
+  search: 'Assistant',
   profile: 'Profile',
 };
 
-const BOTTOM_INSET_FALLBACK = 32;
-
 export function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { width: windowWidth } = useWindowDimensions();
   const theme = colors.light;
-  const paddingBottom = Math.max(BOTTOM_INSET_FALLBACK, insets.bottom);
-  
+  const paddingBottom = Math.max(TAB_BAR_PADDING_BOTTOM_MIN, insets.bottom);
+
   const visibleRoutes = state.routes.filter((r: { name: string }) => VISIBLE_TABS.includes(r.name));
-  const tabItemWidth = windowWidth / visibleRoutes.length; // Equal width based on visible count
 
   return (
     <View
@@ -176,6 +51,9 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
           backgroundColor: theme.card,
           paddingTop: TAB_BAR_PADDING_TOP,
           paddingBottom,
+          minHeight: TAB_BAR_HEIGHT_BASE + paddingBottom,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: theme.border,
           ...Platform.select({
             ios: {
               shadowColor: '#000',
@@ -188,8 +66,8 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
         },
       ]}
     >
-      <View style={styles.row}>
-        {visibleRoutes.map((route: { key: string; name: string }, index: number) => {
+      <View style={styles.row} pointerEvents="box-none">
+        {visibleRoutes.map((route: { key: string; name: string }) => {
           const currentRoute = state.routes[state.index];
           const isFocused = currentRoute && currentRoute.key === route.key;
           const color = isFocused ? theme.primary : theme.muted;
@@ -207,21 +85,48 @@ export function CustomTabBar({ state, descriptors, navigation }: any) {
 
           const iconName = TAB_ICONS[route.name] ?? 'ellipse-outline';
           const label = TAB_LABELS[route.name] ?? route.name;
+          const isCreate = route.name === 'create';
 
           return (
             <TouchableOpacity
               key={route.key}
               onPress={onPress}
-              style={[styles.tabItem, { width: tabItemWidth }]}
+              style={[styles.tabItem, isCreate && styles.tabItemCreate]}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
               accessibilityLabel={label}
             >
-              <Ionicons name={iconName} size={24} color={color} style={styles.icon} />
-              <Text style={[styles.label, { color }]} numberOfLines={1}>
-                {label}
-              </Text>
+              {isCreate ? (
+                <>
+                  <View
+                    style={[
+                      styles.createFab,
+                      {
+                        backgroundColor: theme.primary,
+                        shadowColor: '#000',
+                      },
+                    ]}
+                  >
+                    <Ionicons name={iconName} size={ICON_SIZE_CREATE} color={theme.primaryForeground} />
+                  </View>
+                  <Text style={[styles.label, { color }]} numberOfLines={1}>
+                    {label}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <View style={styles.iconWrap}>
+                    <Ionicons name={iconName} size={ICON_SIZE} color={color} />
+                    {isFocused ? (
+                      <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />
+                    ) : null}
+                  </View>
+                  <Text style={[styles.label, { color }]} numberOfLines={1}>
+                    {label}
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
           );
         })}
@@ -239,18 +144,50 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    justifyContent: 'space-evenly',
     width: '100%',
   },
   tabItem: {
-    justifyContent: 'center',
+    flex: 1,
+    justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.sm,
   },
-  icon: { 
-    marginBottom: 2 
+  tabItemCreate: {
+    paddingBottom: spacing.xs,
   },
-  label: { 
-    fontSize: 11 
+  createFab: {
+    width: CREATE_FAB_SIZE,
+    height: CREATE_FAB_SIZE,
+    borderRadius: CREATE_FAB_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -16,
+    marginBottom: 6,
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
+      },
+      android: { elevation: 10 },
+    }),
+  },
+  iconWrap: {
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  activeIndicator: {
+    position: 'absolute',
+    bottom: -6,
+    width: 20,
+    height: ACTIVE_INDICATOR_HEIGHT,
+    borderRadius: ACTIVE_INDICATOR_HEIGHT / 2,
+  },
+  label: {
+    fontSize: LABEL_SIZE,
+    fontWeight: '600',
   },
 });

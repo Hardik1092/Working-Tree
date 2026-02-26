@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -7,10 +8,8 @@ import { postService } from '@/services/postService';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { colors } from '@/theme/colors';
-import { spacing } from '@/theme/spacing';
+import { spacing, borderRadius } from '@/theme/spacing';
 import { useQueryClient } from '@tanstack/react-query';
-
-const FEED_QUERY_KEY = ['feed', 'recent'];
 
 interface CreatePostForm {
   content: string;
@@ -52,7 +51,8 @@ export function CreatePostScreen() {
         } as unknown as Blob);
       }
       await postService.createPost(formData);
-      queryClient.invalidateQueries({ queryKey: FEED_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ['feed', 'recent'] });
+      queryClient.invalidateQueries({ queryKey: ['feed', 'trending'] });
       setImageUri(null);
       router.replace('/(tabs)/home');
     } finally {
@@ -63,44 +63,84 @@ export function CreatePostScreen() {
   const theme = colors.light;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Controller
-        control={control}
-        name="content"
-        render={({ field: { onChange, onBlur, value } }) => (
-          <Input
-            placeholder="What's on your mind?"
-            value={value}
-            onChangeText={onChange}
-            onBlur={onBlur}
-            multiline
-            numberOfLines={4}
-            style={styles.input}
-          />
-        )}
-      />
-      {imageUri ? (
-        <View style={styles.previewRow}>
-          <Button title="Remove photo" variant="ghost" onPress={() => setImageUri(null)} style={styles.smallBtn} />
-        </View>
-      ) : (
-        <Button title="Add photo" variant="outline" onPress={pickImage} style={styles.addPhotoBtn} />
-      )}
-      <Button
-        title={saving ? 'Posting…' : 'Post'}
-        onPress={handleSubmit(onSubmit)}
-        loading={saving}
-        style={styles.postBtn}
-      />
-    </View>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.keyboard}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 16 : 0}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.section}>
+            <Controller
+              control={control}
+              name="content"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  placeholder="What's on your mind?"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  multiline
+                  numberOfLines={4}
+                  style={styles.input}
+                />
+              )}
+            />
+          </View>
+
+          <View style={styles.section}>
+            {imageUri ? (
+              <>
+                <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="cover" />
+                <Button
+                  title="Remove photo"
+                  variant="ghost"
+                  onPress={() => setImageUri(null)}
+                  style={styles.removePhotoBtn}
+                />
+              </>
+            ) : (
+              <Button title="Add photo" variant="outline" onPress={pickImage} style={styles.addPhotoBtn} />
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Button
+              title={saving ? 'Posting…' : 'Post'}
+              onPress={handleSubmit(onSubmit)}
+              loading={saving}
+              style={styles.postBtn}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: spacing.lg },
+  safe: { flex: 1 },
+  keyboard: { flex: 1 },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl,
+  },
+  section: { marginBottom: spacing.lg },
   input: { minHeight: 100 },
-  addPhotoBtn: { marginTop: spacing.sm },
-  previewRow: { marginTop: spacing.sm },
-  smallBtn: {},
-  postBtn: { marginTop: spacing.xl },
+  previewImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.light.border,
+    marginBottom: spacing.sm,
+  },
+  addPhotoBtn: {},
+  removePhotoBtn: {},
+  postBtn: { marginTop: spacing.sm },
 });

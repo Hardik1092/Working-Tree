@@ -5,23 +5,26 @@ import { formatRelativeTime } from '@krishiconnect/shared';
 import { Avatar } from './Avatar';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
+import { typography } from '@/theme/typography';
 import { Ionicons } from '@expo/vector-icons';
 
 const CAPTION_LINES = 3;
-const IMAGE_RADIUS = 14;
-const CARD_MARGIN_BOTTOM = 20;
+const CARD_MARGIN_BOTTOM = 16;
 const CARD_RADIUS = 12;
-const ICON_COUNT_GAP = 8;
+const MEDIA_HEIGHT = 280;
+const ACTION_GAP = 16;
+const ICON_COUNT_GAP = 6;
 
 interface PostCardProps {
   post: FeedPost;
   onLike?: () => void;
   onComment?: () => void;
   onSave?: () => void;
+  onMenuPress?: () => void;
   showSaveAction?: boolean;
 }
 
-export function PostCard({ post, onLike, onComment, onSave, showSaveAction }: PostCardProps) {
+export function PostCard({ post, onLike, onComment, onSave, onMenuPress, showSaveAction }: PostCardProps) {
   const theme = colors.light;
   const [captionExpanded, setCaptionExpanded] = useState(false);
   const avatarUri =
@@ -32,8 +35,7 @@ export function PostCard({ post, onLike, onComment, onSave, showSaveAction }: Po
   const showReadMore = hasLongCaption && !captionExpanded;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.card }]}>
-      {/* User row */}
+      <View style={[styles.card, { backgroundColor: theme.card }]}>
       <View style={styles.userRow}>
         <Avatar uri={avatarUri} name={post.author.name} size={40} />
         <View style={styles.userMeta}>
@@ -42,6 +44,13 @@ export function PostCard({ post, onLike, onComment, onSave, showSaveAction }: Po
           </Text>
           <Text style={[styles.time, { color: theme.muted }]}>{formatRelativeTime(post.createdAt)}</Text>
         </View>
+        <TouchableOpacity
+          onPress={onMenuPress ?? onComment}
+          style={styles.menuBtn}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="ellipsis-horizontal" size={20} color={theme.muted} />
+        </TouchableOpacity>
       </View>
 
       {/* Image */}
@@ -124,27 +133,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
   },
-  userMeta: { marginLeft: spacing.sm, flex: 1 },
-  authorName: { fontSize: 16, fontWeight: '600' },
-  time: { fontSize: 12 },
+  userMeta: { marginLeft: spacing.sm, flex: 1, minWidth: 0 },
+  menuBtn: { padding: spacing.xs },
+  authorName: { ...typography.headline, marginBottom: 2 },
+  time: { ...typography.caption, color: colors.light.muted },
   media: {
     width: '100%',
-    height: 280,
+    height: MEDIA_HEIGHT,
     backgroundColor: colors.light.border,
-    borderRadius: IMAGE_RADIUS,
-    overflow: 'hidden',
+    marginVertical: 0,
   },
-  body: { paddingHorizontal: spacing.md, paddingBottom: spacing.md, paddingTop: spacing.sm },
-  captionWrap: { marginBottom: spacing.sm },
-  caption: { fontSize: 14, lineHeight: 22 },
-  readMore: { fontSize: 14, marginTop: 2 },
+  body: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  captionWrap: { marginBottom: spacing.md },
+  caption: { ...typography.bodySmall, lineHeight: 20 },
+  readMore: { ...typography.bodySmall, marginTop: 2 },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
+    marginTop: spacing.xs,
   },
-  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: ICON_COUNT_GAP },
-  actionCount: { fontSize: 14 },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: ACTION_GAP,
+  },
+  actionCount: { ...typography.bodySmall, marginLeft: ICON_COUNT_GAP },
 });

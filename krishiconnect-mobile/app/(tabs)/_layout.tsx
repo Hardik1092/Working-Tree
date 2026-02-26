@@ -6,14 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { CustomTabBar } from '@/components/navigation/CustomTabBar';
 
 const theme = colors.light;
-const TAB_BAR_HEIGHT = 104;
+const TAB_BAR_HEIGHT = 72;
 
 export default function TabsLayout() {
   return (
     <Tabs
+      tabBar={(props: BottomTabBarProps) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: true,
-        tabBar: (props: BottomTabBarProps) => <CustomTabBar {...props} />,
         tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: theme.muted,
         tabBarStyle: {
@@ -45,16 +45,16 @@ export default function TabsLayout() {
         name="create"
         options={{
           title: 'New Post',
-          tabBarLabel: 'New',
-          tabBarIcon: ({ color, size }) => <Ionicons name="add-circle-outline" size={size ?? 24} color={color} />,
+          tabBarLabel: 'Create',
+          tabBarIcon: ({ color, size }) => <Ionicons name="add" size={size ?? 26} color={color} />,
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Search',
-          tabBarLabel: 'Search',
-          tabBarIcon: ({ color, size }) => <Ionicons name="search" size={size ?? 24} color={color} />,
+          title: 'Krishi Assistant',
+          tabBarLabel: 'Assistant',
+          tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" size={size ?? 26} color={color} />,
         }}
       />
       <Tabs.Screen

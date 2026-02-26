@@ -7,8 +7,8 @@ export default function SearchScreen() {
   const theme = colors.light;
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.title, { color: theme.foreground }]}>Search</Text>
-      <Text style={[styles.placeholder, { color: theme.muted }]}>Search for people, posts, and more.</Text>
+      <Text style={[styles.title, { color: theme.foreground }]}>Krishi Assistant</Text>
+      <Text style={[styles.placeholder, { color: theme.muted }]}>Ask questions about crops, weather, and farming.</Text>
     </View>
   );
 }
