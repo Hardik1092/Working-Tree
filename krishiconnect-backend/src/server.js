@@ -6,6 +6,7 @@ const { connectRedis } = require('./config/redis');
 const { initializeSocket } = require('./socket');
 const logger = require('./config/logger');
 const User = require('./modules/user/user.model');
+const { validateNewsEnv } = require('./modules/news/news.config');
 
 const PORT = process.env.PORT || 5005;
 
@@ -65,6 +66,7 @@ async function seedProfileAdmin() {
 
 const startServer = async () => {
   try {
+    validateNewsEnv();
     await connectDB();
     await seedDefaultAdmin();
     await seedProfileAdmin();

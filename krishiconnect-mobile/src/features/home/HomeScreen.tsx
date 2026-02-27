@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import type { FeedPost } from '@krishiconnect/shared';
@@ -29,7 +29,6 @@ import { spacing, borderRadius } from '@/theme/spacing';
 import { typography } from '@/theme/typography';
 
 const CARD_RADIUS = 16;
-const HEADER_H_PADDING = 18;
 const TAB_BAR_BOTTOM_PADDING = 88;
 
 function getWeatherTip(w: WeatherCurrent | null): string {
@@ -46,6 +45,7 @@ function getWeatherTip(w: WeatherCurrent | null): string {
 
 export function HomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const theme = colors.light;
   const user = useAuthStore((s) => s.user);
   const [feedMode, setFeedMode] = useState<FeedMode>('recent');
@@ -91,47 +91,11 @@ export function HomeScreen() {
   const marketPrices = marketData?.prices ?? [];
 
   const openCreate = useCallback(() => {
-    router.push('/(tabs)/create');
+    router.push('/(drawer)/(tabs)/create');
   }, [router]);
 
   const renderHeader = () => (
     <>
-      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-        <Text style={[styles.logo, { color: theme.foreground }]} numberOfLines={1}>
-          KrishiConnect
-        </Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            onPress={() => router.push('/(tabs)/search')}
-            style={styles.iconBtn}
-            activeOpacity={0.7}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="search-outline" size={22} color={theme.foreground} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push('/(tabs)/alerts')}
-            style={styles.iconBtn}
-            activeOpacity={0.7}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons name="notifications-outline" size={22} color={theme.foreground} />
-            {unreadCount > 0 && (
-              <View style={[styles.badge, { backgroundColor: theme.primary }]}>
-                <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={openCreate}
-            style={[styles.createIconBtn, { backgroundColor: theme.primary }]}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="add" size={24} color={theme.primaryForeground} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
       <View style={[styles.createCard, { backgroundColor: theme.card }]}>
         <TouchableOpacity style={styles.createCardTop} onPress={openCreate} activeOpacity={0.8}>
           <Avatar
@@ -212,7 +176,7 @@ export function HomeScreen() {
     <>
       <TouchableOpacity
         style={styles.weatherCard}
-        onPress={() => router.push('/(tabs)/weather')}
+        onPress={() => router.push('/(drawer)/(tabs)/weather')}
         activeOpacity={0.9}
       >
         <View style={styles.weatherHeader}>
@@ -273,7 +237,7 @@ export function HomeScreen() {
 
       <TouchableOpacity
         style={[styles.mandiCard, { backgroundColor: theme.card }]}
-        onPress={() => router.push('/(tabs)/market')}
+        onPress={() => router.push('/(drawer)/(tabs)/market')}
         activeOpacity={0.9}
       >
         <View style={styles.mandiHeader}>
@@ -345,6 +309,7 @@ export function HomeScreen() {
           ListFooterComponent={renderFooter}
           contentContainerStyle={[
             styles.listContent,
+            { paddingBottom: TAB_BAR_BOTTOM_PADDING + insets.bottom },
             posts.length === 0 && styles.listContentEmpty,
           ]}
           refreshControl={
@@ -370,40 +335,6 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1, backgroundColor: colors.light.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: HEADER_H_PADDING,
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  logo: { ...typography.headline, flex: 1, paddingRight: spacing.sm },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconBtn: { padding: spacing.xs, position: 'relative', marginLeft: spacing.sm },
-  createIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: spacing.sm,
-  },
-  badge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    minWidth: 14,
-    height: 14,
-    borderRadius: 7,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-  },
-  badgeText: { color: '#fff', fontSize: 9, fontWeight: '600' },
   createCard: {
     marginHorizontal: spacing.md,
     marginTop: spacing.md,
@@ -452,7 +383,6 @@ const styles = StyleSheet.create({
   toggleLabel: { ...typography.label },
   listContent: {
     paddingTop: spacing.sm,
-    paddingBottom: TAB_BAR_BOTTOM_PADDING,
   },
   listContentEmpty: { flexGrow: 1 },
   weatherCard: {

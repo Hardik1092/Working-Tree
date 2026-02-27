@@ -82,6 +82,14 @@ const accountDeletionLimiter = rateLimit({
   },
 });
 
+const newsLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isTesting ? 1000 : 60,
+  message: { success: false, message: 'Too many news requests. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 module.exports = {
   generalLimiter,
   authLimiter,
@@ -91,4 +99,5 @@ module.exports = {
   aiLimiter,
   notificationListLimiter,
   accountDeletionLimiter,
+  newsLimiter,
 };

@@ -11,7 +11,7 @@ export default function Index() {
   useEffect(() => {
     if (!isHydrated) return;
     if (user) {
-      router.replace('/(tabs)/home');
+      router.replace('/(drawer)/(tabs)/home');
     } else {
       router.replace('/(auth)/login');
     }

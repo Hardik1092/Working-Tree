@@ -7,9 +7,11 @@ import { chatService } from '@/services/chatService';
 import { Avatar } from '@/components/common/Avatar';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
+import { useAuthStore } from '@/store/authStore';
 
 export function MessagesListScreen() {
   const router = useRouter();
+  const currentUserId = useAuthStore((s) => s.user?._id ?? null);
   const [list, setList] = React.useState<Conversation[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -36,21 +38,30 @@ export function MessagesListScreen() {
   const theme = colors.light;
 
   const renderItem = ({ item }: { item: Conversation }) => {
-    const other = item.participants?.find((p: { user?: { _id?: string } }) => {
-      const id = typeof p.user === 'object' && p.user ? (p.user as { _id?: string })._id : p.user;
-      return id; // could compare with current user to show "other"
+    const other = item.participants?.find((p: any) => {
+      const u = p?.user ?? p;
+      const id = typeof u === 'object' && u ? (u._id ?? u.id) : u;
+      return currentUserId ? String(id) !== String(currentUserId) : true;
     });
-    const user = (other?.user ?? item.participants?.[0]?.user) as { _id?: string; name?: string; profilePhoto?: { url?: string }; avatar?: string } | undefined;
+    const user = (other?.user ?? other ?? item.participants?.[0]?.user ?? item.participants?.[0]) as
+      | { _id?: string; name?: string; profilePhoto?: { url?: string }; avatar?: string }
+      | undefined;
     const name = user?.name ?? 'Unknown';
     const avatarUri = user?.profilePhoto?.url ?? (user as { avatar?: string })?.avatar;
-    const lastMsg = item.lastMessage as { text?: string; content?: string; createdAt?: string } | undefined;
-    const preview = lastMsg?.text ?? lastMsg?.content ?? 'No messages yet';
-    const time = lastMsg?.createdAt ?? item.updatedAt;
+    const lastMsg = item.lastMessage as any | undefined;
+    const rawPreview = lastMsg?.text ?? lastMsg?.content ?? '';
+    const preview =
+      typeof rawPreview === 'string'
+        ? rawPreview
+        : rawPreview && typeof rawPreview === 'object' && rawPreview.text != null
+          ? String(rawPreview.text)
+          : 'No messages yet';
+    const time = lastMsg?.createdAt ?? lastMsg?.sentAt ?? item.updatedAt;
 
     return (
       <TouchableOpacity
         style={[styles.row, { borderColor: theme.border }]}
-        onPress={() => router.push(`/(tabs)/messages/${item._id}`)}
+        onPress={() => router.push(`/(drawer)/(tabs)/messages/${item._id}`)}
         activeOpacity={0.7}
       >
         <Avatar uri={avatarUri} name={name} size={48} />

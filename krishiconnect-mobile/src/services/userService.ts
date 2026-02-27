@@ -26,4 +26,9 @@ export const userService = {
   async follow(userId: string): Promise<void> {
     await request('POST', USERS.FOLLOW(userId));
   },
+
+  async canChat(userId: string): Promise<{ canChat: boolean }> {
+    const { data } = await request('GET', `/users/${userId}/can-chat`);
+    return ((data as any)?.data ?? data) as { canChat: boolean };
+  },
 };

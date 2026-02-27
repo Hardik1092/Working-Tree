@@ -11,11 +11,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/spacing';
 
-const VISIBLE_TABS = ['home', 'create', 'search', 'profile'];
+const VISIBLE_TABS = ['home', 'search', 'create', 'messages', 'news'];
 const TAB_BAR_RADIUS = 16;
 const TAB_BAR_PADDING_TOP = 8;
 const TAB_BAR_PADDING_BOTTOM_MIN = 10;
-const TAB_BAR_HEIGHT_BASE = 68;
+const TAB_BAR_HEIGHT_BASE = 70;
 const ICON_SIZE = 26;
 const ICON_SIZE_CREATE = 28;
 const LABEL_SIZE = 11;
@@ -23,16 +23,20 @@ const ACTIVE_INDICATOR_HEIGHT = 3;
 const CREATE_FAB_SIZE = 52;
 
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  home: 'home',
-  create: 'add',
+  home: 'home-outline',
   search: 'sparkles-outline',
+  create: 'add',
+  messages: 'chatbubble-outline',
+  news: 'newspaper-outline',
   profile: 'person-outline',
 };
 
 const TAB_LABELS: Record<string, string> = {
   home: 'Home',
-  create: 'Create',
   search: 'Assistant',
+  create: 'Add Post',
+  messages: 'Messages',
+  news: 'News',
   profile: 'Profile',
 };
 
@@ -145,7 +149,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-around',
     width: '100%',
   },
   tabItem: {

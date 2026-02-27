@@ -51,4 +51,16 @@ export const chatService = {
     });
     return (data.data ?? data) as Conversation;
   },
+
+  async startExpertChat(expertId: string): Promise<Conversation> {
+    const { data } = await request<ApiEnvelope<Conversation>>('POST', CHAT.CONVERSATIONS_START_EXPERT, {
+      expertId,
+    });
+    return (data.data ?? data) as Conversation;
+  },
+
+  async uploadMedia(formData: FormData): Promise<{ url?: string; type?: string } | unknown> {
+    const { data } = await request('POST', CHAT.UPLOAD, null, { body: formData });
+    return (data as any)?.data ?? data;
+  },
 };

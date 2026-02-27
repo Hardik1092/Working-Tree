@@ -84,7 +84,7 @@ export function RegisterScreen() {
         if (res.data && 'tokens' in res.data) {
           const d = res.data as { user: unknown; tokens: { accessToken: string; refreshToken: string } };
           await setAuth(d.user as Parameters<typeof setAuth>[0], d.tokens.accessToken, d.tokens.refreshToken);
-          router.replace('/(tabs)/home');
+          router.replace('/(drawer)/(tabs)/home');
         } else {
           setError(res.message ?? 'Verification failed');
         }
@@ -93,7 +93,7 @@ export function RegisterScreen() {
         if (res.data && 'tokens' in res.data) {
           const d = res.data as { user: unknown; tokens: { accessToken: string; refreshToken: string } };
           await setAuth(d.user as Parameters<typeof setAuth>[0], d.tokens.accessToken, d.tokens.refreshToken);
-          router.replace('/(tabs)/home');
+          router.replace('/(drawer)/(tabs)/home');
         } else {
           setError(res.message ?? 'Verification failed');
         }

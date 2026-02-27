@@ -54,7 +54,7 @@ export function CreatePostScreen() {
       queryClient.invalidateQueries({ queryKey: ['feed', 'recent'] });
       queryClient.invalidateQueries({ queryKey: ['feed', 'trending'] });
       setImageUri(null);
-      router.replace('/(tabs)/home');
+      router.replace('/(drawer)/(tabs)/home');
     } finally {
       setSaving(false);
     }

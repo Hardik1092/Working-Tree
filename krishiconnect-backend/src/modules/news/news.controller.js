@@ -3,45 +3,97 @@ const ApiResponse = require('../../utils/ApiResponse');
 const asyncHandler = require('../../utils/asyncHandler');
 const logger = require('../../config/logger');
 
-/**
- * GET /news/agriculture
- * Returns latest agriculture-related news (cached). No auth required.
- * Always returns 200 with data array; never throws to avoid 502.
- */
+function buildSuccess(res, result, defaultMessage) {
+  const items = Array.isArray(result.data) ? result.data : [];
+  const totalItems = typeof result.totalItems === 'number' ? result.totalItems : items.length;
+  const page = result.page || 1;
+  const limit = result.limit || items.length || 20;
+
+  return res.status(200).json(
+    new ApiResponse(200, items, defaultMessage, {
+      totalItems,
+      page,
+      limit,
+    }),
+  );
+}
+
+function buildFailure(res, result) {
+  const statusCode = result.statusCode || 502;
+  const message = result.message || 'Unable to load news. Please try again later.';
+  const payload = new ApiResponse(statusCode, [], message);
+  return res.status(statusCode).json(payload);
+}
+
 const getAgricultureNews = asyncHandler(async (req, res) => {
-  let result;
   try {
-    result = await newsService.getAgricultureNews();
+    const result = await newsService.getAgricultureNews(req.query);
+    if (!result || typeof result !== 'object') {
+      return buildFailure(res, { statusCode: 502, message: 'News service temporarily unavailable' });
+    }
+    if (!result.success) {
+      return buildFailure(res, result);
+    }
+    return buildSuccess(res, result, 'Agriculture news');
   } catch (err) {
     logger.error('[news.controller] getAgricultureNews error:', err?.message || err);
-    return res.status(200).json(
-      new ApiResponse(200, [], 'Unable to load news. Please try again later.')
-    );
+    return buildFailure(res, { statusCode: 500, message: 'Unable to load news. Please try again later.' });
   }
+});
 
-  if (!result || typeof result !== 'object') {
-    return res.status(200).json(
-      new ApiResponse(200, [], 'No news available')
-    );
+const getTrendingNews = asyncHandler(async (req, res) => {
+  try {
+    const result = await newsService.getTrendingNews(req.query);
+    if (!result || typeof result !== 'object') {
+      return buildFailure(res, { statusCode: 502, message: 'News service temporarily unavailable' });
+    }
+    if (!result.success) {
+      return buildFailure(res, result);
+    }
+    return buildSuccess(res, result, 'Trending news');
+  } catch (err) {
+    logger.error('[news.controller] getTrendingNews error:', err?.message || err);
+    return buildFailure(res, { statusCode: 500, message: 'Unable to load news. Please try again later.' });
   }
+});
 
-  if (!result.success) {
-    const message = result.error === 'Invalid API key'
-      ? 'News service is not configured'
-      : result.error === 'Rate limit exceeded'
-        ? 'News service is busy. Try again later.'
-        : 'Unable to load news. Please try again later.';
-    return res.status(200).json(
-      new ApiResponse(200, [], message)
-    );
+const getNewsByCategory = asyncHandler(async (req, res) => {
+  const { category } = req.params;
+  try {
+    const result = await newsService.getNewsByCategory(category, req.query);
+    if (!result || typeof result !== 'object') {
+      return buildFailure(res, { statusCode: 502, message: 'News service temporarily unavailable' });
+    }
+    if (!result.success) {
+      return buildFailure(res, result);
+    }
+    return buildSuccess(res, result, 'Category news');
+  } catch (err) {
+    logger.error('[news.controller] getNewsByCategory error:', err?.message || err);
+    return buildFailure(res, { statusCode: 500, message: 'Unable to load news. Please try again later.' });
   }
+});
 
-  const data = Array.isArray(result.data) ? result.data : [];
-  res.status(200).json(
-    new ApiResponse(200, data, data.length ? 'Agriculture news' : 'No news available')
-  );
+const searchNews = asyncHandler(async (req, res) => {
+  const { q } = req.query;
+  try {
+    const result = await newsService.searchNews(q, req.query);
+    if (!result || typeof result !== 'object') {
+      return buildFailure(res, { statusCode: 502, message: 'News service temporarily unavailable' });
+    }
+    if (!result.success) {
+      return buildFailure(res, result);
+    }
+    return buildSuccess(res, result, 'News search results');
+  } catch (err) {
+    logger.error('[news.controller] searchNews error:', err?.message || err);
+    return buildFailure(res, { statusCode: 500, message: 'Unable to load news. Please try again later.' });
+  }
 });
 
 module.exports = {
   getAgricultureNews,
+  getTrendingNews,
+  getNewsByCategory,
+  searchNews,
 };

@@ -56,7 +56,7 @@ export function LoginScreen() {
       }
       if ('user' in loginData && 'tokens' in loginData) {
         await setAuth(loginData.user, loginData.tokens.accessToken, loginData.tokens.refreshToken);
-        router.replace('/(tabs)/home');
+        router.replace('/(drawer)/(tabs)/home');
       } else {
         setError(res.message ?? 'Login failed');
       }

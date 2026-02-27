@@ -50,13 +50,13 @@ export function ProfileScreen() {
         <Button
           title="Edit profile"
           variant="outline"
-          onPress={() => router.push('/(tabs)/profile/edit')}
+          onPress={() => router.push('/(drawer)/(tabs)/profile/edit')}
           style={styles.btn}
         />
         <Button
           title="My posts"
           variant="outline"
-          onPress={() => router.push('/(tabs)/profile/posts')}
+          onPress={() => router.push('/(drawer)/(tabs)/profile/posts')}
           style={styles.btn}
         />
       </View>
